@@ -8,7 +8,7 @@ from requests.exceptions import RequestException
 from exceptions import (ResponseError, StatusCodeError, TokenError)
 
 from telegram import Bot
-from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
+from telegram.ext import CommandHandler, Updater
 
 from dotenv import load_dotenv
 
@@ -30,10 +30,12 @@ HOMEWORK_STATUSES = {
 
 TOKENS = ('PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID')
 
+
 def send_message(bot, message):
     """Отправка сообщения об изменении статуса."""
     bot.send_message(TELEGRAM_CHAT_ID, message)
     logging.info(f'Отправлено сообщение: {message}')
+
 
 def get_api_answer(current_timestamp):
     """Запрос к эндпоинту API-сервиса."""
@@ -45,12 +47,13 @@ def get_api_answer(current_timestamp):
         raise ConnectionError(f'Ошибка подключения к API: {error}')
     status_code = response.status_code
     if status_code != 200:
-        raise StatusCodeError(f'Ошибка при запросе к API, код статуса: {status_code}')
+        raise StatusCodeError(f'Ошибка при запросе к API, код: {status_code}')
     response_json = response.json()
     for key in ('error'):
         if key in response_json:
             raise ResponseError(f'Отказ обслуживания. Ошибка: {key}')
     return response_json
+
 
 def check_response(response):
     """Проверка ответа API."""
@@ -60,8 +63,11 @@ def check_response(response):
         raise KeyError('Отсутствует ключ "homeworks!"')
     homeworks = response['homeworks']
     if type(homeworks) is not list:
-        raise TypeError('Домашние задания оформлены не как список под ключом "homeworks"!')
+        raise TypeError(
+            'Домашние задания оформлены не как список c ключом "homeworks"!'
+        )
     return response.get('homeworks')
+
 
 def parse_status(homework):
     """Извлечение из информации о домашней работе статуса этой работы."""
@@ -86,11 +92,13 @@ def check_tokens():
 updater = Updater(token=TELEGRAM_TOKEN)
 
 def say_hello(update, context):
+    """Приветствие по команде /start."""
     chat = update.effective_chat
     context.bot.send_message(
         chat_id=chat.id, 
-        text='Приветствую, я бот-ассистент! Давайте проверим статус ваших домашних заданий.'
+        text='Приветствую, я бот-ассистент! Проверим статус ваших домашних заданий.'
     )
+
 
 def main():
     """Основная логика работы бота."""
