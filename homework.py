@@ -80,6 +80,7 @@ def parse_status(homework):
     verdict = HOMEWORK_STATUSES.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
+
 def check_tokens():
     """Проверка наличия токенов."""
     flag = True
@@ -89,14 +90,17 @@ def check_tokens():
             flag = False
     return flag
 
+
 updater = Updater(token=TELEGRAM_TOKEN)
+
 
 def say_hello(update, context):
     """Приветствие по команде /start."""
     chat = update.effective_chat
     context.bot.send_message(
-        chat_id=chat.id, 
-        text='Приветствую, я бот-ассистент! Проверим статус ваших домашних заданий.'
+        chat_id=chat.id,
+        text='Приветствую, я бот-ассистент!\
+              Давайте проверим статус ваших домашних заданий.'
     )
 
 
@@ -122,6 +126,7 @@ def main():
             except Exception as error:
                 logging.exception(f'Ошибка при отправке сообщения: {error}')
         time.sleep(RETRY_TIME)
+
 
 if __name__ == '__main__':
     logging.basicConfig(
