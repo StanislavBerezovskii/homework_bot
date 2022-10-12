@@ -71,8 +71,8 @@ def parse_status(homework):
         raise KeyError('Не найден ключ "homework_name"!')
     if homework_status not in HOMEWORK_STATUSES:
         raise ValueError(f'Неизвестный статус: {homework_status}')
-    verdict = homework_status
-    return f'Изменился статус проверки работы "{homework_name}". Новый статус: {verdict}.'
+    verdict = HOMEWORK_STATUSES.get(homework_status)
+    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 def check_tokens():
     """Проверка наличия токенов."""
