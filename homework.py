@@ -8,7 +8,6 @@ from requests.exceptions import RequestException
 from exceptions import (ResponseError, StatusCodeError, TokenError)
 
 from telegram import Bot
-from telegram.ext import CommandHandler, Updater
 
 from dotenv import load_dotenv
 
@@ -91,19 +90,6 @@ def check_tokens():
     return flag
 
 
-updater = Updater(token=TELEGRAM_TOKEN)
-
-
-def say_hello(update, context):
-    """Приветствие по команде start."""
-    chat = update.effective_chat
-    context.bot.send_message(
-        chat_id=chat.id,
-        text='Приветствую, я бот-ассистент!\
-              Давайте проверим статус ваших домашних заданий.'
-    )
-
-
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
@@ -137,7 +123,4 @@ if __name__ == '__main__':
         format=(
             '%(asctime)s, %(levelname)s, %(funcName)s, %(lineno)d, %(message)s'
         ))
-    updater.dispatcher.add_handler(CommandHandler('start', say_hello))
-    updater.start_polling(poll_interval=600.0)
-    updater.idle()
     main()
