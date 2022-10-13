@@ -95,7 +95,7 @@ updater = Updater(token=TELEGRAM_TOKEN)
 
 
 def say_hello(update, context):
-    """Приветствие по команде /start."""
+    """Приветствие по команде start."""
     chat = update.effective_chat
     context.bot.send_message(
         chat_id=chat.id,
