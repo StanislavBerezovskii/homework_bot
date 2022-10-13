@@ -4,12 +4,10 @@ import time
 
 import requests
 from requests.exceptions import RequestException
+from telegram import Bot
+from dotenv import load_dotenv
 
 from exceptions import (ResponseError, StatusCodeError, TokenError)
-
-from telegram import Bot
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -21,7 +19,7 @@ RETRY_TIME = 600
 ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
 
-HOMEWORK_STATUSES = {
+VERDICTS = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -38,7 +36,7 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Запрос к эндпоинту API-сервиса."""
-    timestamp = current_timestamp or int(time.time())
+    timestamp = current_timestamp
     params = {'from_date': timestamp}
     try:
         response = requests.get(url=ENDPOINT, headers=HEADERS, params=params)
@@ -47,21 +45,21 @@ def get_api_answer(current_timestamp):
     status_code = response.status_code
     if status_code != 200:
         raise StatusCodeError(f'Ошибка при запросе к API, код: {status_code}')
-    response_json = response.json()
-    for key in ('error'):
-        if key in response_json:
-            raise ResponseError(f'Отказ обслуживания. Ошибка: {key}')
+    try:
+        response_json = response.json()
+    except Exception as error:
+        raise ResponseError(f'Отказ обслуживания. Ошибка: {error}')
     return response_json
 
 
 def check_response(response):
     """Проверка ответа API."""
-    if type(response) is not dict:
+    if not isinstance(response, dict):
         raise TypeError('Ответ API не является словарем!')
     if 'homeworks' not in response:
         raise KeyError('Отсутствует ключ "homeworks!"')
     homeworks = response['homeworks']
-    if type(homeworks) is not list:
+    if not isinstance(homeworks, list):
         raise TypeError(
             'Домашние задания оформлены не как список c ключом "homeworks"!'
         )
@@ -70,13 +68,13 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлечение из информации о домашней работе статуса этой работы."""
-    homework_name = homework['homework_name']
-    homework_status = homework['status']
     if 'homework_name' not in homework:
         raise KeyError('Не найден ключ "homework_name"!')
-    if homework_status not in HOMEWORK_STATUSES:
+    homework_name = homework['homework_name']
+    if 'homework_status' not in VERDICTS:
         raise ValueError(f'Неизвестный статус: {homework_status}')
-    verdict = HOMEWORK_STATUSES.get(homework_status)
+    homework_status = homework['status']
+    verdict = VERDICTS.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
@@ -108,7 +106,7 @@ def main():
             message = f'Сбой в работе программы: {error}'
             logging.exception(message)
             try:
-                bot.send_message(TELEGRAM_CHAT_ID, message)
+                send_message(TELEGRAM_CHAT_ID, message)
             except Exception as error:
                 logging.exception(f'Ошибка при отправке сообщения: {error}')
         time.sleep(RETRY_TIME)
