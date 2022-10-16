@@ -72,7 +72,7 @@ def parse_status(homework):
         raise KeyError('Не найден ключ "homework_name"!')
     homework_name = homework['homework_name']
     if 'homework_status' not in VERDICTS:
-        raise ValueError(f'Неизвестный статус: {homework_status}')
+        raise ValueError(f'Неизвестный статус обработки домашнего задания!')
     homework_status = homework['status']
     verdict = VERDICTS.get(homework_status)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
@@ -112,7 +112,7 @@ def main():
                 try:
                     send_message(TELEGRAM_CHAT_ID, message)
                 except Exception as error:
-                    logging.exception(f'Ошибка при отправке сообщения: {error}')
+                    logging.exception(f'Сбой отправки сообщения: {error}')
                 last_error = message
         time.sleep(RETRY_TIME)
 
