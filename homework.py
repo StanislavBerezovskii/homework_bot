@@ -93,22 +93,27 @@ def main():
     if not check_tokens():
         raise TokenError('Ошибка в токенах!')
     bot = Bot(token=TELEGRAM_TOKEN)
-    current_timestamp = int(time.time())
+    current_timestamp = int(time.time()) - 100000
+    last_error = ''
     while True:
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
             if homeworks:
                 send_message(bot, parse_status(homeworks[0]))
+            else:
+                logging.info('Домашние задания не найдены.')
             current_timestamp = response.get('current_date', current_timestamp)
             time.sleep(RETRY_TIME)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logging.exception(message)
-            try:
-                send_message(TELEGRAM_CHAT_ID, message)
-            except Exception as error:
-                logging.exception(f'Ошибка при отправке сообщения: {error}')
+            logging.critical(message)
+            if last_error != message:
+                try:
+                    send_message(TELEGRAM_CHAT_ID, message)
+                except Exception as error:
+                    logging.exception(f'Ошибка при отправке сообщения: {error}')
+                last_error = message
         time.sleep(RETRY_TIME)
 
 
