@@ -5,6 +5,7 @@ import time
 import requests
 from requests.exceptions import RequestException
 from telegram import Bot
+from http import HTTPStatus
 from dotenv import load_dotenv
 
 from exceptions import (ResponseError, StatusCodeError, TokenError)
@@ -43,7 +44,7 @@ def get_api_answer(current_timestamp):
     except RequestException as error:
         raise ConnectionError(f'Ошибка подключения к API: {error}')
     status_code = response.status_code
-    if status_code != 200:
+    if status_code != HTTPStatus.OK:
         raise StatusCodeError(f'Ошибка при запросе к API, код: {status_code}')
     try:
         response_json = response.json()
@@ -99,18 +100,18 @@ def main():
     if not check_tokens():
         raise TokenError('Ошибка в токенах!')
     bot = Bot(token=TELEGRAM_TOKEN)
-    current_timestamp = int(time.time()) - 100000
+    timestamp = int(time.time())-100000
     last_error = ''
+
     while True:
         try:
-            response = get_api_answer(current_timestamp)
+            response = get_api_answer(timestamp)
             homeworks = check_response(response)
             if homeworks:
                 send_message(bot, parse_status(homeworks[0]))
             else:
                 logging.info('Домашние задания не найдены.')
-            current_timestamp = response.get('current_date', current_timestamp)
-            time.sleep(RETRY_TIME)
+            timestamp = response.get('current_date', timestamp)
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.critical(message)
@@ -120,7 +121,8 @@ def main():
                 except Exception as error:
                     logging.exception(f'Сбой отправки сообщения: {error}')
                 last_error = message
-        time.sleep(RETRY_TIME)
+        finally:
+            time.sleep(RETRY_TIME)
 
 
 if __name__ == '__main__':
