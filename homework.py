@@ -37,8 +37,7 @@ def send_message(bot, message):
 
 def get_api_answer(current_timestamp):
     """Запрос к эндпоинту API-сервиса."""
-    timestamp = current_timestamp
-    params = {'from_date': timestamp}
+    params = {'from_date': current_timestamp}
     try:
         response = requests.get(url=ENDPOINT, headers=HEADERS, params=params)
     except RequestException as error:
@@ -100,18 +99,21 @@ def main():
     if not check_tokens():
         raise TokenError('Ошибка в токенах!')
     bot = Bot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time())-100000
+    current_timestamp = int(time.time()) - 2000000
     last_error = ''
 
     while True:
         try:
-            response = get_api_answer(timestamp)
+            response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
             if homeworks:
                 send_message(bot, parse_status(homeworks[0]))
             else:
                 logging.info('Домашние задания не найдены.')
-            timestamp = response.get('current_date', timestamp)
+            current_timestamp = response.get(
+                'current_date',
+                current_timestamp
+            )
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logging.critical(message)
