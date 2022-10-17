@@ -137,11 +137,8 @@ def main():
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             logger.critical(message)
-            try:
-                if last_error != message:
-                    send_message(TELEGRAM_CHAT_ID, message)
-            except Exception as error:
-                logger.error(f'Сбой отправки сообщения: {error}')
+            if last_error != message:
+                send_message(TELEGRAM_CHAT_ID, message)
                 last_error = message
         finally:
             time.sleep(RETRY_TIME)
